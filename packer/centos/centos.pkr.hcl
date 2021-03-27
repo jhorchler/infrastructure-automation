@@ -115,6 +115,6 @@ build {
 
     post-processor "vagrant" {
         keep_input_artifact = false
-        output              = "${var.box_directory}/${build.name}-${local.build_time}.box"
+        output              = "${var.box_directory}/${build.ID}.box"
     }
 }
