@@ -1,7 +1,7 @@
 # Infrastructure as Code
 
 My research about infrastructure automation with [packer](https://www.packer.io/),
-vagrant, terraform etc.
+[vagrant](https://www.vagrantup.com/), [terraform](https://www.terraform.io/) etc.
 
 ## Packer builds
 
@@ -15,8 +15,7 @@ I created these instead of using the great builds already existing (for example
 [chef/bento](https://github.com/chef/bento/tree/master/packer_templates)) because
 I wanted to learn how `packer` works.
 
-**Note**: I'm already using HCL for these builds. Hence, packer of version _1.7_
-is needed.
+> **Note**: I'm already using HCL for these builds. Hence, packer of version **_1.7_** is needed.
 
 These builds are only installing a minimal set of software and only add the
 VirtualBox guest additions. The user used inside the VM is always `root`, and
@@ -24,7 +23,7 @@ VirtualBox guest additions. The user used inside the VM is always `root`, and
 
 ### Packer builder used
 
-As packer can use many builders and and can build all builds in parallel I would
+As packer can use many builders and can build all builds in parallel I would
 be able to create all artifacts from one build definition. I decided not to do
 that for several reasons.
 
@@ -34,8 +33,7 @@ files that were downloaded inside the VMs (for example when running
 remove Docker.
 
 As I mainly use [VirtualBox](https://www.virtualbox.org/) anyway for automated
-[Vagrant](https://www.vagrantup.com/) boxes, I'm using these now and now only
-use the "virtualbox-iso" builder.
+Vagrant boxes, I'm using these now and only use the "virtualbox-iso" builder.
 
 Finally to have cleaner build definitions, I decided to split the builds by
 operating system.
@@ -72,22 +70,22 @@ The newer version is used for tests with Oracle 19c only.
 
 - 11.2.0.4: SLES 10 / SLES 11 / SLES 12 SP1+
 - 12.1.0.2: SLES 11 SP2+ / SLES 12 SP1+
-- 12.2.0.1: SLES 12 SP1+ / SLES 15
-- 18.0.0.0: SLES 12 SP1+
 - 19.0.0.0: SLES 12 SP3+ / SLES 15
 
 #### Oracle Certified RHEL Versions
 
 - 11.2.0.4: RHEL 4 / RHEL 5 / RHEL 6 / RHEL 7
 - 12.1.0.2: RHEL 5 U6+ / RHEL 6 / RHEL 7 / RHEL 8 U1+
-- 12.2.0.1: RHEL 6 U4+ / RHEL 7
-- 18.0.0.0: RHEL 6 U4+ / RHEL 7
 - 19.0.0.0: RHEL 7 U5+ / RHEL 8
 
 #### Oracle Certified OL Versions
 
 - 11.2.0.4: OL 4 / OL 5 / OL 6 / OL 7
 - 12.1.0.2: OL 5 U6+ / OL 6 / OL 7 / OL 8 U1+
-- 12.2.0.1: OL 6 U4+ / OL 7
-- 18.0.0.0: OL 6 U4+ / OL 7
 - 19.0.0.0: OL 7 U4+ / OL 8 U1+
+
+#### Oracle Certified Windows Versions
+
+- 11.2.0.4: 2003 R2 / 2008 / 2008 R2 / 2012 / 2012 R2
+- 12.1.0.2: 2008 / 2008 R2 / 2012 / 2012 R2
+- 19.0.0.0: 2012 R2 / 2016 / 2019
