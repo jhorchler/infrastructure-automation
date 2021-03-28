@@ -1,0 +1,18 @@
+version: '3'
+
+includes:
+  ostask: ./Taskfile_{{OS}}.yml
+
+vars:
+  HCL_VARIABLES: opensuse.auto.pkrvars.hcl
+  AUTOYAST_DIRECTORY: autoyast
+  AUTOYAST_TEMPLATE: ay-template.xml
+  AUTOYAST_15: autoinst15.xml
+  AUTOYAST_42: autoinst42.xml
+
+tasks:
+  default:
+    desc: Run the packer build stored in the current directory
+    cmds:
+      - task: ostask:generate-autoinst
+      - packer build -color=false -var 'http_directory={{.AUTOYAST_DIRECTORY}}' -var 'autoyast_15={{.AUTOYAST_15}}' -var 'autoyast_42={{.AUTOYAST_42}}' .

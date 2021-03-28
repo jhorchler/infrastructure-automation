@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns"
+    xmlns:config="http://www.suse.com/1.0/configns">
+
+    <!-- installation workflow -->
+    <general>
+
+        <!--
+            - do not prompt
+            - force a final reboot without kexec
+        -->
+        <mode>
+            <confirm config:type="boolean">false</confirm>
+            <final_reboot config:type="boolean">true</final_reboot>
+            <forceboot config:type="boolean">true</forceboot>
+        </mode>
+
+    </general>
+
+    <!-- Reporting Behavior -->
+    <report>
+
+        <!--
+            - log all messages
+            - do not show them
+        -->
+        <errors>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">false</show>
+            <timeout config:type="integer">10</timeout>
+        </errors>
+
+        <messages>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">false</show>
+            <timeout config:type="integer">10</timeout>
+        </messages>
+
+        <warnings>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">false</show>
+            <timeout config:type="integer">10</timeout>
+        </warnings>
+
+        <yesno_messages>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">false</show>
+            <timeout config:type="integer">10</timeout>
+        </yesno_messages>
+    </report>
+
+    <!-- bootloader section -->
+    <bootloader>
+
+        <!--
+            - use non-efi boot: grub2
+        -->
+        <loader_type>grub2</loader_type>
+
+        <!--
+            - append kernel parameters
+        -->
+        <global>
+            <append>nopti noibrs noibpb</append>
+        </global>
+
+    </bootloader>
+
+    <!-- partitions -->
+    <partitioning config:type="list">
+
+        <!--
+            be old school:
+            - one XFS /boot partition
+            - one LVM physical volume
+              - one LVM volume group
+                - swap volume
+                - XFS root filesystem
+        -->
+
+        <drive>
+            <device>/dev/sda</device>
+            <initialize config:type="boolean">true</initialize>
+            <use>all</use>
+            <partitions config:type="list">
+                <partition>
+                    <create config:type="boolean">true</create>
+                    <format config:type="boolean">true</format>
+                    <filesystem config:type="symbol">xfs</filesystem>
+                    <partition_type>primary</partition_type>
+                    <mountby config:type="symbol">uuid</mountby>
+                    <mount>/boot</mount>
+                    <label>BOOTFS</label>
+                    <size>300M</size>
+                </partition>
+                <partition>
+                    <create config:type="boolean">true</create>
+                    <format config:type="boolean">false</format>
+                    <partition_type>primary</partition_type>
+                    <partition_id config:type="integer">142</partition_id>
+                    <lvm_group>tank</lvm_group>
+                </partition>
+            </partitions>
+        </drive>
+        <drive>
+            <device>/dev/tank</device>
+            <initialize config:type="boolean">true</initialize>
+            <use>all</use>
+            <type config:type="symbol">CT_LVM</type>
+            <partitions config:type="list">
+            <!--
+                <partition>
+                    <create config:type="boolean">true</create>
+                    <format config:type="boolean">true</format>
+                    <filesystem config:type="symbol">swap</filesystem>
+                    <partition_id config:type="integer">130</partition_id>
+                    <mountby config:type="symbol">uuid</mountby>
+                    <label>SWAP</label>
+                    <lv_name>swap</lv_name>
+                    <size>1024M</size>
+                </partition>
+            -->
+                <partition>
+                    <create config:type="boolean">true</create>
+                    <format config:type="boolean">true</format>
+                    <filesystem config:type="symbol">xfs</filesystem>
+                    <mountby config:type="symbol">uuid</mountby>
+                    <mount>/</mount>
+                    <label>ROOTFS</label>
+                    <lv_name>root</lv_name>
+                    <size>max</size>
+                </partition>
+            </partitions>
+        </drive>
+
+    </partitioning>
+
+    <!-- country settings -->
+    <language>
+
+        <!--
+            - primary language is US english
+            - install all languages
+        -->
+        <language>en_US</language>
+        <languages>all</languages>
+
+    </language>
+
+    <timezone>
+
+        <!--
+            - HWClock runs in UTC
+            - timezone is UTC as well -> set this later using a provisioner
+        -->
+        <hwclock>UTC</hwclock>
+        <timezone>Etc/UTC</timezone>
+
+    </timezone>
+
+    <keyboard>
+
+        <!--
+            - set to US english as well -> configure using Vagrant / Saltstack
+        -->
+        <keymap>english-us</keymap>
+
+    </keyboard>
+
+    <!-- software selection -->
+    <software>
+
+        <!--
+            - minimum needed software installation
+            - update at the end of the installation
+            - install default kernel
+        -->
+        <install_recommended config:type="boolean">false</install_recommended>
+
+        <patterns config:type="list">
+            <pattern>base</pattern>
+            <pattern>sw_management</pattern>
+            <pattern>yast2_basis</pattern>
+        </patterns>
+
+        <products config:type="list">
+            <product>openSUSE</product>
+        </products>
+
+        <packages config:type="list">
+            <package>ca-certificates-mozilla</package>
+            <package>curl</package>
+            <package>dhcp</package>
+            <package>dhcp-client</package>
+            <package>grub2</package>
+            <package>less</package>
+            <package>make</package>
+            <package>python-xml</package>
+            <package>sudo</package>
+            <package>vim</package>
+            <package>wget</package>
+        </packages>
+
+        <do_online_update config:type="boolean">true</do_online_update>
+
+        <kernel>kernel-default</kernel>
+
+    </software>
+
+    <deploy_image>
+        <image_installation config:type="boolean">false</image_installation>
+    </deploy_image>
+
+    <!-- services and systemd targets -->
+    <services-manager>
+
+        <!--
+            - boot without GUI
+            - enable SSHD
+        -->
+        <default_target>multi-user</default_target>
+        <services>
+            <enable config:type="list">
+                <service>sshd</service>
+            </enable>
+        </services>
+
+    </services-manager>
+
+    <!-- network -->
+    <networking>
+
+        <!--
+            - first interface will use dhcp
+        -->
+        <interfaces config:type="list">
+            <interface>
+                <bootproto>dhcp</bootproto>
+                <name>eth0</name>
+                <startmode>auto</startmode>
+            </interface>
+        </interfaces>
+
+        <!--
+            - set hostname
+            - do not request / use hostname from dhcp
+            - do not write hostname to /etc/hosts
+            - automatically handle /etc/resolv.conf
+        -->
+        <dns>
+            <hostname>packer</hostname>
+            <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+            <write_hostname config:type="boolean">false</write_hostname>
+            <resolv_conf_policy>auto</resolv_conf_policy>
+        </dns>
+
+    </networking>
+
+    <!-- security settings -->
+    <security>
+
+        <!--
+            password settings
+            - maximum number of days a password is valid
+            - minimum number of days before a user can change the
+              password since the last change
+            - number of days when the password change reminder starts
+            - use cracklib and no obscure checks
+            - minimum length of password
+            - maximum length of passwrd
+            - password encryption in /etc/shadow
+            - password history settings
+        -->
+        <pass_max_days>178</pass_max_days>
+        <pass_min_days>3</pass_min_days>
+        <pass_warn_age>7</pass_warn_age>
+        <passwd_use_cracklib>yes</passwd_use_cracklib>
+        <obscure_checks_enab>no</obscure_checks_enab>
+        <pass_min_len>12</pass_min_len>
+        <pass_max_len>64</pass_max_len>
+        <passwd_encryption>sha512</passwd_encryption>
+        <passwd_remember_history>5</passwd_remember_history>
+
+        <!--
+            login settings
+            - Delay in seconds before being allowed another attempt after a login failure
+            - log failed logins
+            - disable lastlog
+        -->
+        <fail_delay>5</fail_delay>
+        <faillog_enab>yes</faillog_enab>
+        <lastlog_enab>no</lastlog_enab>
+
+        <!--
+            general settings
+            - don't add . to the path of root and users
+            - set filesystem permissions policy to secure
+            - don't run updatedb as root (systemd default)
+            - ensure postix doesn't listen on ips
+        -->
+        <cwd_in_root_path>no</cwd_in_root_path>
+        <cwd_in_user_path>no</cwd_in_user_path>
+        <permission_security>secure</permission_security>
+        <run_updatedb_as>nobody</run_updatedb_as>
+        <smtpd_listen_remote>no</smtpd_listen_remote>
+
+    </security>
+
+    <!-- auditing -->
+    <audit-laf>
+
+        <!--
+            configure auditd
+            - don't write to disk
+        -->
+        <auditd>
+            <log_format>NOLOG</log_format>
+        </auditd>
+
+    </audit-laf>
+
+    <!-- users -->
+    <users config:type="list">
+
+        <!--
+            root user
+            - ensure it can not expire
+        -->
+        <user>
+            <username>root</username>
+            <home>/root</home>
+            <uid>0</uid>
+            <gid>0</gid>
+            <user_password>@@USER_PASSWORD@@</user_password>
+            <encrypted config:type="boolean">false</encrypted>
+            <password_settings>
+                <inact>-1</inact>
+                <max>99999</max>
+                <min>0</min>
+            </password_settings>
+        </user>
+    </users>
+
+    <!-- kernel dumps -->
+    <kdump>
+
+        <!--
+            - disable kdump
+        -->
+        <add_crash_kernel config:type="boolean">false</add_crash_kernel>
+
+    </kdump>
+
+    <!-- firewall -->
+    <firewall>
+
+        <!--
+            - disable it
+        -->
+        <enable_firewall config:type="boolean">false</enable_firewall>
+
+    </firewall>
+
+</profile>
