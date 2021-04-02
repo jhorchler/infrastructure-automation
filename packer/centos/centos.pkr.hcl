@@ -47,8 +47,9 @@ build {
             "<up><wait>",
             "<tab><wait>",
             "<bs><bs><bs><bs><bs>",
-            "inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks-7.cfg ",
+            "inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg ",
             "ip=dhcp inst.text inst.nosave=all ",
+            "os_version=7 ",
             "inst_repo=${var.install_mirror_7} ",
             "ssh_password=${var.root_password}",
             "<enter>"
@@ -65,8 +66,9 @@ build {
             "<up><wait>",
             "<tab><wait>",
             "<bs><bs><bs><bs><bs>",
-            "inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks-8.cfg ",
+            "inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg ",
             "ip=dhcp inst.text inst.nosave=all ",
+            "os_version=8 ",
             "inst_repo=${var.install_mirror_8} ",
             "ssh_password=${var.root_password}",
             "<enter>"
