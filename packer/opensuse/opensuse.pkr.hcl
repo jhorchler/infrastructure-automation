@@ -21,7 +21,7 @@ source "virtualbox-iso" "opensuse" {
     ssh_timeout             = "15m"
     pause_before_connecting = "3m"
     ssh_pty                 = true
-    headless                = false
+    headless                = true
     usb                     = true
     keep_registered         = "${var.keep_registered}"
     vboxmanage              = [
