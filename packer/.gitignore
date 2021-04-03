@@ -1,3 +1,5 @@
 *pkrvars.hcl
 ssh.pub
 autoinst*.xml
+Autounattend.xml
+*.msi
