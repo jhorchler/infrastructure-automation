@@ -18,9 +18,9 @@ For this build the evaluation iso from Microsoft is used. To use this project
 - install [VirtualBox](https://www.virtualbox.org/)
 - download [PowerShell Core](https://docs.microsoft.com/de-de/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7) and put as PowerShell.msi in `shell` subfolder
 - to build the CD containing the answer file (Floppy is not available in UEFI mode) install a CD build tool and ensure that it is included in your path
-** [xorriso](https://www.gnu.org/software/xorriso/)
-** [mkisofs](https://mkisofs.updatestar.com/de)
-** [oscdimg](https://docs.microsoft.com/en-us/windows-hardware/get-started/adk-install)
+  - [xorriso](https://www.gnu.org/software/xorriso/)
+  - [mkisofs](https://mkisofs.updatestar.com/de)
+  - [oscdimg](https://docs.microsoft.com/en-us/windows-hardware/get-started/adk-install)
 - create an variables file, for example `windows.auto.pkrvars.hcl` containing all vars in `variables.pkr.hcl`
 - change directory to `<repo-root>/packer/windows`
 - run `task` for Windows Server 2019 Datacenter Core (the default) or `task OSVERSION=2012R2-standard-core` for 2012 R2 Standard Core
@@ -30,8 +30,8 @@ For this build the evaluation iso from Microsoft is used. To use this project
 > This command is shown on stdout. If this is a security problem use `task -s` to hide the command.
 
 As with the OpenSUSE build, Windows needs the password of `Administrator` (or any other user) within
-the `Autounattended.xml` file. To inject this into the file, a template `template.xml` is used to
-generate `Autoattended.xml` using  `Task`.
+the `Autounattend.xml` file. To inject this into the file, a template `template.xml` is used to
+generate `Autoattend.xml` using  `Task`.
 
 > **NOTE:**
 > The template in this repo is installing Windows without GUI. The template _should_ work for
