@@ -1,3 +1,8 @@
+variable "chipset" {
+    description = "The chipset to be used: PIIX3 or ICH9."
+    type        = string
+}
+
 variable "mem_size" {
     description = "Size of RAM to assign."
     type        = number
@@ -74,6 +79,11 @@ variable "paravirtprovider" {
     default     = "hyperv"
 }
 
+variable "nic_type" {
+    description = "The driver to use for the network interface."
+    type        = string
+}
+
 variable "root_password" {
     description = "Password of the root-User. Is set during kickstart installation."
     type        = string
@@ -98,4 +108,25 @@ variable "user_ssh_key" {
 variable "keep_registered" {
     description = "Should the source vm stay registered in VirtualBox after completed build."
     type        = bool
+}
+
+variable "qemu_accel" {
+    description = "Accelerator used for qemu."
+    type        = string
+}
+
+variable "qemu_disk_if" {
+    description = "This option defines on which type on interface the drive is connected."
+    type        = string
+    default     = "ide"
+}
+
+variable "qemu_machine_type" {
+    description = "The type of machine emulation to use."
+    type        = string
+}
+
+variable "gfx_controller" {
+    description = "The graphics controller type to be used."
+    type        = string
 }

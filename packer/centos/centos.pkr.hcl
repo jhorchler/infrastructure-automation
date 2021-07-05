@@ -1,5 +1,5 @@
 packer {
-    required_version = ">= 1.7.0"
+    required_version = ">= 1.7.3"
 }
 
 locals {
@@ -7,33 +7,51 @@ locals {
 }
 
 source "virtualbox-iso" "centos" {
+    chipset                = "${var.chipset}"
     disk_size              = "${var.disk_size}"
-    cpus                   = "${var.cpu_count}"
-    memory                 = "${var.mem_size}"
+    nic_type               = "${var.nic_type}"
     guest_os_type          = "${var.guest_os_type}"
     guest_additions_path   = "${var.ga_upload_path}"
     guest_additions_sha256 = "${var.ga_sha256sum}"
     guest_additions_url    = "${var.ga_source_path}"
+    keep_registered        = "${var.keep_registered}"
+    cpus                   = "${var.cpu_count}"
+    memory                 = "${var.mem_size}"
+    gfx_controller         = "${var.gfx_controller}"
+    gfx_vram_size          = 42
     http_directory         = "${path.root}/kickstart"
-    hard_drive_interface   = "sata"
-    guest_additions_mode   = "upload"
     shutdown_command       = "/bin/systemctl poweroff"
     boot_wait              = "10s"
+    rtc_time_base          = "UTC"
+    hard_drive_interface   = "sata"
+    guest_additions_mode   = "upload"
+    headless               = true
+    usb                    = true
     ssh_username           = "root"
     ssh_password           = "${var.root_password}"
     ssh_timeout            = "15m"
     ssh_pty                = true
-    headless               = true
-    usb                    = true
-    keep_registered        = "${var.keep_registered}"
     vboxmanage             = [
-        [ "modifyvm", "{{ .Name }}", "--rtcuseutc", "on" ],
-        [ "modifyvm", "{{ .Name }}", "--nictype1", "virtio" ],
-        [ "modifyvm", "{{ .Name }}", "--graphicscontroller", "vmsvga" ],
-        [ "modifyvm", "{{ .Name }}", "--vram", "42" ],
         [ "modifyvm", "{{ .Name }}", "--paravirtprovider", "${var.paravirtprovider}" ],
         [ "setextradata", "{{ .Name }}", "VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled", "1" ],
     ]
+}
+
+source "qemu" "centos" {
+    accelerator         = "${var.qemu_accel}"
+    disk_interface      = "${var.qemu_disk_if}"
+    machine_type        = "${var.qemu_machine_type}"
+    cpus                = "${var.cpu_count}"
+    memory              = "${var.mem_size}"
+    disk_size           = "${var.disk_size}"
+    http_directory      = "${path.root}/kickstart"
+    shutdown_command    = "/bin/systemctl poweroff"
+    boot_wait           = "10s"
+    ssh_username        = "root"
+    ssh_password        = "${var.root_password}"
+    ssh_timeout         = "15m"
+    ssh_pty             = true
+    headless            = false
 }
 
 build {
@@ -75,6 +93,44 @@ build {
         ]
     }
 
+    source "qemu.centos" {
+        name             = "centos7"
+        iso_url          = "${var.iso_url_7}"
+        iso_checksum     = "${var.iso_checksum_7}"
+        vm_name          = "centos7-${local.build_time}"
+        output_directory = "${var.packer_out_path}7"
+        boot_command     = [
+            "<up><wait>",
+            "<tab><wait>",
+            "<bs><bs><bs><bs><bs>",
+            "inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg ",
+            "ip=dhcp inst.text inst.nosave=all ",
+            "os_version=7 ",
+            "inst_repo=${var.install_mirror_7} ",
+            "ssh_password=${var.root_password}",
+            "<enter>"
+        ]
+    }
+
+    source "qemu.centos" {
+        name             = "centos8"
+        iso_url          = "${var.iso_url_8}"
+        iso_checksum     = "${var.iso_checksum_8}"
+        vm_name          = "centos8-${local.build_time}"
+        output_directory = "${var.packer_out_path}8"
+        boot_command     = [
+            "<up><wait>",
+            "<tab><wait>",
+            "<bs><bs><bs><bs><bs>",
+            "inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg ",
+            "ip=dhcp inst.text inst.nosave=all ",
+            "os_version=8 ",
+            "inst_repo=${var.install_mirror_8} ",
+            "ssh_password=${var.root_password}",
+            "<enter>"
+        ]
+    }
+
     provisioner "shell" {
         inline = [
             "/usr/bin/yum -y update",
@@ -84,12 +140,26 @@ build {
     }
 
     provisioner "shell" {
+        only = [
+            "virtualbox-iso.centos7",
+            "virtualbox-iso.centos8"
+        ]
         inline = [
             "/usr/bin/yum -y install make gcc bzip2 tar kernel-devel elfutils-libelf-devel",
             "/usr/bin/mount -o loop ${var.ga_upload_path} /mnt",
             "/mnt/VBoxLinuxAdditions.run",
             "/usr/bin/umount /mnt",
             "/usr/bin/rm -vf ${var.ga_upload_path}"
+        ]
+    }
+
+    provisioner "shell" {
+        only = [
+            "qemu.centos7",
+            "qemu.centos8"
+        ]
+        inline = [
+            "/usr/bin/yum -y install qemu-guest-agent"
         ]
     }
 
@@ -108,15 +178,17 @@ build {
 
     provisioner "shell" {
         inline = [
-            "yum clean all",
-            "rm -rf /var/cache/yum",
-            "dd if=/dev/zero of=/junk bs=1M || true",
-            "rm -f /junk"
+            "set -x",
+            "/usr/bin/yum clean all",
+            "/bin/rm -rf /var/cache/yum || true",
+            "/bin/rm -rf /var/cache/dnf || true",
+            "/usr/bin/dd if=/dev/zero of=/junk bs=1M || true",
+            "/bin/rm -f /junk"
         ]
     }
 
     post-processor "vagrant" {
         keep_input_artifact = false
-        output              = "${var.box_directory}/${build.ID}.box"
+        output              = "${var.box_directory}/packer_{{.BuildName}}_{{.Provider}}.box"
     }
 }
