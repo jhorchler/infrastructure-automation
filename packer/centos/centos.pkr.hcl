@@ -51,7 +51,7 @@ source "qemu" "centos" {
     ssh_password        = "${var.root_password}"
     ssh_timeout         = "15m"
     ssh_pty             = true
-    headless            = false
+    headless            = true
 }
 
 build {
