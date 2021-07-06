@@ -154,6 +154,7 @@ build {
     }
 
     provisioner "shell" {
+        pause_before = "5s"
         only = [
             "qemu.centos7",
             "qemu.centos8"
@@ -177,6 +178,7 @@ build {
     }
 
     provisioner "shell" {
+        pause_before = "5s"
         inline = [
             "set -x",
             "/usr/bin/yum clean all",
@@ -189,6 +191,6 @@ build {
 
     post-processor "vagrant" {
         keep_input_artifact = false
-        output              = "${var.box_directory}/packer_{{.BuildName}}_{{.Provider}}.box"
+        output              = "${var.box_directory}/{{.Provider}}_${local.build_time}.box"
     }
 }
