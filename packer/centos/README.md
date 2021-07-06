@@ -2,10 +2,13 @@
 
 ## Usage
 
-Just clone the repository, install packer and VirtualBox and create a
+Just clone the repository, install packer and (VirtualBox or QEMU) and create a
 `*.auto.pkrvars.hcl` file that sets all variables defined in `variables.pkr.hcl`.
 
-From root of the repository run `cd packer` and `packer build centos`.
+From root of the repository run `cd packer` and `packer build centos`. This will
+build all artifacts for VirtualBox and QEMU by default. To build a specific
+version run for example `packer build -only=qemu.centos8 centos` for CentOS 8
+build using QEMU.
 
 ## Kickstart
 
