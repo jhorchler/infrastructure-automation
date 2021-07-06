@@ -11,8 +11,8 @@ I created these instead of using the great builds already existing (for example
 I wanted to learn how `packer` works.
 
 > **Note**: I'm already using HCL for these builds.
-> Hence, packer of version **_1.7_** is needed. In addition the `.hcl` files
-> currently need to have UNIX line endings (LF).
+> Hence, packer of version **_1.7_** or higher is needed.
+> In addition the `.hcl` files need to have UNIX line endings (LF).
 
 These builds are only installing a minimal set of software and only add the
 VirtualBox guest additions. The user used inside the VM is always `root`, and
@@ -20,22 +20,8 @@ VirtualBox guest additions. The user used inside the VM is always `root`, and
 
 ## Packer builder used
 
-As packer can use many builders and can build all builds in parallel I would
-be able to create all artifacts from one build definition. I decided not to do
-that for several reasons.
-
-First I used Hyper-V or Docker for my builds. But I had problems with corrupted
-files that were downloaded inside the VMs (for example when running
-`yum install some_package`). I needed to disable some Windows Components, and to
-remove Docker.
-
-As I mainly use [VirtualBox](https://www.virtualbox.org/) anyway for automated
-Vagrant boxes, I'm using these now and only use the "virtualbox-iso" builder.
-
-Finally to have cleaner build definitions, I decided to split the builds by
-operating system.
-
-See individual folders about how to use these builds.
+Currently there are builds configured for `virtualbox-iso` and `qemu`. In
+addition I might add `docker` for `opensuse` and `centos` in the future.
 
 ## OS Versiones
 

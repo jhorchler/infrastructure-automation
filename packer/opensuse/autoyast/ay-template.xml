@@ -80,7 +80,7 @@
         -->
 
         <drive>
-            <device>/dev/sda</device>
+            <device>/dev/${boot_device}</device>
             <initialize config:type="boolean">true</initialize>
             <use>all</use>
             <partitions config:type="list">
@@ -332,7 +332,7 @@
             <home>/root</home>
             <uid>0</uid>
             <gid>0</gid>
-            <user_password>@@USER_PASSWORD@@</user_password>
+            <user_password>${user_password}</user_password>
             <encrypted config:type="boolean">false</encrypted>
             <password_settings>
                 <inact>-1</inact>

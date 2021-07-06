@@ -1,10 +1,10 @@
-variable "autoyast_15" {
-    description = "Path to final autoyast profile for OpenSUSE 15."
+variable "chipset" {
+    description = "The chipset to be used: PIIX3 or ICH9."
     type        = string
 }
 
-variable "autoyast_42" {
-    description = "Path to final autoyast profile for OpenSUSE 42."
+variable "nic_type" {
+    description = "The driver to use for the network interface."
     type        = string
 }
 
@@ -96,5 +96,31 @@ variable "user_ssh_key" {
 
 variable "http_directory" {
     description = "Directory where autoyast profile and ssh-key are stored."
+    type        = string
+}
+
+variable "qemu_accel" {
+    description = "Accelerator used for qemu."
+    type        = string
+}
+
+variable "qemu_disk_if" {
+    description = "This option defines on which type on interface the drive is connected."
+    type        = string
+    default     = "ide"
+}
+
+variable "qemu_machine_type" {
+    description = "The type of machine emulation to use."
+    type        = string
+}
+
+variable "gfx_controller" {
+    description = "The graphics controller type to be used."
+    type        = string
+}
+
+variable "autoyast_template" {
+    description = "The template autoyast file which is used."
     type        = string
 }
