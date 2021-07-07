@@ -27,7 +27,7 @@
                     <InstallFrom>
                         <MetaData wcm:action="add">
                             <Key>/IMAGE/NAME</Key>
-                            <Value>@@IMAGE_NAME@@</Value>
+                            <Value>${image_name}</Value>
                         </MetaData>
                     </InstallFrom>
                 </OSImage>
@@ -77,7 +77,7 @@
         <component name="Microsoft-Windows-PnpCustomizationsWinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <DriverPaths>
                 <PathAndCredentials wcm:action="add" wcm:keyValue="2">
-                    <Path>@@DRIVER_PATH@@</Path>
+                    <Path>${driver_path}</Path>
                 </PathAndCredentials>
             </DriverPaths>
         </component>
@@ -97,7 +97,7 @@
         <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <UserAccounts>
                 <AdministratorPassword>
-                    <Value>@@ADMIN_PASSWORD@@</Value>
+                    <Value>${admin_password}</Value>
                     <PlainText>true</PlainText>
                 </AdministratorPassword>
             </UserAccounts>
@@ -184,7 +184,7 @@
             </OOBE>
             <AutoLogon>
                 <Password>
-                    <Value>@@ADMIN_PASSWORD@@</Value>
+                    <Value>${admin_password}</Value>
                     <PlainText>true</PlainText>
                 </Password>
                 <Enabled>true</Enabled>

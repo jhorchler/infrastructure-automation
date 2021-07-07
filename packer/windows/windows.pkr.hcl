@@ -1,8 +1,10 @@
 packer {
-    required_version = ">= 1.7.0"
+    required_version = ">= 1.7.3"
 }
 
 source "virtualbox-iso" "windows" {
+    chipset                 = "${var.chipset}"
+    nic_type                = "${var.nic_type}"
     vm_name                 = "${var.vm_name}"
     iso_url                 = "${var.iso_url}"
     iso_checksum            = "${var.iso_checksum}"
@@ -13,6 +15,8 @@ source "virtualbox-iso" "windows" {
     guest_os_type           = "${var.guest_os_type}"
     keep_registered         = "${var.keep_registered}"
     winrm_password          = "${var.winrm_password}"
+    gfx_controller          = "${var.gfx_controller}"
+    gfx_vram_size           = 128
     communicator            = "winrm"
     winrm_timeout           = "12h"
     winrm_username          = "Administrator"
@@ -23,34 +27,75 @@ source "virtualbox-iso" "windows" {
     shutdown_command        = "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\""
     shutdown_timeout        = "15m"
     cd_label                = "answerfile"
-    headless                = false
+    headless                = true
     usb                     = true
     cd_files                = [
-        "${var.answer_file}",
         "cdrom/PowerShell.msi",
         "cdrom/WUA_SearchDownloadInstall.vbs",
         "cdrom/clear_drive.ps1"
     ]
+    cd_content              = {
+        "Autounattended.xml" = templatefile("${path.root}/${var.unattended_directory}/${var.unattended_template}", {
+            admin_password = "${var.winrm_password}",
+            image_name     = "${var.image_name}",
+            driver_path    = "${var.driver_path}"
+        })
+    }
     boot_command            = [
         "<spacebar>"
     ]
     vboxmanage              = [
-        [ "modifyvm", "{{ .Name }}", "--vram", "128" ],
-        [ "modifyvm", "{{ .Name }}", "--graphicscontroller", "vboxsvga" ],
-        [ "modifyvm", "{{ .Name }}", "--nictype1", "virtio" ],
         [ "modifyvm", "{{ .Name }}", "--firmware", "efi" ],
         [ "modifyvm", "{{ .Name }}", "--paravirtprovider", "${var.paravirtprovider}" ],
         [ "storageattach", "{{ .Name }}", "--storagectl" , "SATA Controller", "--port", "4", "--type", "dvddrive", "--medium", "${var.virtio_driver_disk}" ]
     ]
 }
 
+source "qemu" "windows" {
+    vm_name             = "${var.vm_name}"
+    iso_url             = "${var.iso_url}"
+    iso_checksum        = "${var.iso_checksum}"
+    output_directory    = "${var.output_directory}/${var.os_version}"
+    accelerator         = "${var.qemu_accel}"
+    disk_interface      = "${var.qemu_disk_if}"
+    machine_type        = "${var.qemu_machine_type}"
+    firmware            = "${var.qemu_uefi_firmware}"
+    cpus                = "${var.cpu_count}"
+    memory              = "${var.mem_size}"
+    disk_size           = "${var.disk_size}"
+    shutdown_command    = "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\""
+    shutdown_timeout    = "15m"
+    boot_wait           = "6s"
+    communicator        = "winrm"
+    winrm_timeout       = "12h"
+    winrm_username      = "Administrator"
+    headless            = false
+    cdrom_interface     = "ide"
+    cd_label            = "answerfile"
+    cd_files            = [
+        "cdrom/PowerShell.msi",
+        "cdrom/WUA_SearchDownloadInstall.vbs",
+        "cdrom/clear_drive.ps1"
+    ]
+    cd_content          = {
+        "Autounattended.xml" = templatefile("${path.root}/${var.unattended_directory}/${var.unattended_template}", {
+            admin_password = "${var.winrm_password}",
+            image_name     = "${var.image_name}",
+            driver_path    = "${var.driver_path}"
+        })
+    }
+    boot_command            = [
+        "<spacebar>"
+    ]
+}
+
 build {
 
     name = "windows"
-    sources = [ "virtualbox-iso.windows" ]
+    sources = [ "virtualbox-iso.windows" , "qemu.windows"]
 
     provisioner "powershell" {
-        script = "cdrom\\WUA_SearchDownloadInstall.ps1"
+        script = "cdrom/WUA_SearchDownloadInstall.ps1"
     }
 
     provisioner "powershell" {
@@ -98,6 +143,6 @@ build {
 
     post-processor "vagrant" {
         keep_input_artifact = false
-        output              = "${var.box_directory}/${build.ID}-${var.os_version}.box"
+        output              = "${var.box_directory}/{{.Provider}}-${var.os_version}.box"
     }
 }

@@ -1,5 +1,10 @@
-variable "answer_file" {
-    description = "Path to final Autounattended.xml"
+variable "unattended_template" {
+    description = "Name of the template used to generate Autounattended.xml"
+    type        = string
+}
+
+variable "unattended_directory" {
+    description = "Path to template file used to generate Autounattended.xml"
     type        = string
 }
 
@@ -86,4 +91,40 @@ variable "winrm_password" {
     description = "Password of the Administrator."
     type        = string
     sensitive   = true
+}
+
+variable "gfx_controller" {
+    description = "The graphics controller type to be used."
+    type        = string
+}
+
+variable "chipset" {
+    description = "The chipset to be used: PIIX3 or ICH9."
+    type        = string
+}
+
+variable "nic_type" {
+    description = "The driver to use for the network interface."
+    type        = string
+}
+
+variable "qemu_accel" {
+    description = "Accelerator used for qemu."
+    type        = string
+}
+
+variable "qemu_disk_if" {
+    description = "This option defines on which type on interface the drive is connected."
+    type        = string
+    default     = "ide"
+}
+
+variable "qemu_machine_type" {
+    description = "The type of machine emulation to use."
+    type        = string
+}
+
+variable "qemu_uefi_firmware" {
+    description = "The UEFI firmware file to use."
+    type        = string
 }
