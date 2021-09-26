@@ -1,5 +1,11 @@
 packer {
     required_version = ">= 1.7.3"
+    required_plugins {
+        qemu = {
+            version = ">= 1.0.0"
+            source = "github.com/hashicorp/qemu"
+        }
+    }
 }
 
 source "virtualbox-iso" "windows" {
@@ -91,7 +97,6 @@ source "qemu" "windows" {
 
 build {
 
-    name = "windows"
     sources = [ "virtualbox-iso.windows" , "qemu.windows"]
 
     provisioner "powershell" {
