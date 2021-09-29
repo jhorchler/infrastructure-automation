@@ -75,7 +75,7 @@ source "qemu" "windows" {
     communicator        = "winrm"
     winrm_timeout       = "12h"
     winrm_username      = "Administrator"
-    headless            = false
+    headless            = true
     cdrom_interface     = "ide"
     cd_label            = "answerfile"
     cd_files            = [
