@@ -128,3 +128,8 @@ variable "qemu_uefi_firmware" {
     description = "The UEFI firmware file to use."
     type        = string
 }
+
+variable "virtio_driver_files" {
+    description = "Path to contents of the virtio NetKVM files"
+    type        = string
+}

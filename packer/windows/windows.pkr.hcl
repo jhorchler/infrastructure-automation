@@ -32,7 +32,7 @@ source "virtualbox-iso" "windows" {
     boot_wait               = "6s"
     shutdown_command        = "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\""
     shutdown_timeout        = "15m"
-    cd_label                = "answerfile"
+    cd_label                = "ANSWERFILE"
     headless                = true
     usb                     = true
     cd_files                = [
@@ -41,7 +41,7 @@ source "virtualbox-iso" "windows" {
         "cdrom/clear_drive.ps1"
     ]
     cd_content              = {
-        "Autounattended.xml" = templatefile("${path.root}/${var.unattended_directory}/${var.unattended_template}", {
+        "autounattend.xml" = templatefile("${path.root}/${var.unattended_directory}/${var.unattended_template}", {
             admin_password = "${var.winrm_password}",
             image_name     = "${var.image_name}",
             driver_path    = "${var.driver_path}"
@@ -71,20 +71,21 @@ source "qemu" "windows" {
     disk_size           = "${var.disk_size}"
     shutdown_command    = "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\""
     shutdown_timeout    = "15m"
-    boot_wait           = "6s"
+    boot_wait           = "2s"
     communicator        = "winrm"
     winrm_timeout       = "12h"
     winrm_username      = "Administrator"
-    headless            = true
+    headless            = false
     cdrom_interface     = "ide"
-    cd_label            = "answerfile"
+    cd_label            = "ANSWERFILE"
     cd_files            = [
         "cdrom/PowerShell.msi",
         "cdrom/WUA_SearchDownloadInstall.vbs",
-        "cdrom/clear_drive.ps1"
+        "cdrom/clear_drive.ps1",
+        "${var.virtio_driver_files}"
     ]
     cd_content          = {
-        "Autounattended.xml" = templatefile("${path.root}/${var.unattended_directory}/${var.unattended_template}", {
+        "autounattend.xml" = templatefile("${path.root}/${var.unattended_directory}/${var.unattended_template}", {
             admin_password = "${var.winrm_password}",
             image_name     = "${var.image_name}",
             driver_path    = "${var.driver_path}"
