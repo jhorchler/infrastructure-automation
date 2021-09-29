@@ -58,7 +58,7 @@ source "qemu" "opensuse" {
     ssh_password        = "${var.root_password}"
     ssh_timeout         = "15m"
     ssh_pty             = true
-    headless            = false
+    headless            = true
     http_content            = {
         "/autoinst.xml" = templatefile("${path.root}/${var.http_directory}/${var.autoyast_template}", {
             boot_device   = "vda",
