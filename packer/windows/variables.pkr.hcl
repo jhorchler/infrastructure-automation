@@ -68,11 +68,6 @@ variable "paravirtprovider" {
     default     = "hyperv"
 }
 
-variable "virtio_driver_disk" {
-    description = "Full path to the VIRTIO iso that contains network drivers for virtio."
-    type        = string
-}
-
 variable "driver_path" {
     description = "Directory on the VIRTIO disk where to find the drivers. Must be injected into template.xml"
 }

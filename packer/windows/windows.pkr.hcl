@@ -1,8 +1,8 @@
 packer {
-    required_version = ">= 1.7.3"
+    required_version = ">= 1.7.5"
     required_plugins {
         qemu = {
-            version = ">= 1.0.0"
+            version = ">= 1.0.1"
             source = "github.com/hashicorp/qemu"
         }
     }
@@ -38,7 +38,8 @@ source "virtualbox-iso" "windows" {
     cd_files                = [
         "cdrom/PowerShell.msi",
         "cdrom/WUA_SearchDownloadInstall.vbs",
-        "cdrom/clear_drive.ps1"
+        "cdrom/clear_drive.ps1",
+        "${var.virtio_driver_files}"
     ]
     cd_content              = {
         "autounattend.xml" = templatefile("${path.root}/${var.unattended_directory}/${var.unattended_template}", {
@@ -52,8 +53,7 @@ source "virtualbox-iso" "windows" {
     ]
     vboxmanage              = [
         [ "modifyvm", "{{ .Name }}", "--firmware", "efi" ],
-        [ "modifyvm", "{{ .Name }}", "--paravirtprovider", "${var.paravirtprovider}" ],
-        [ "storageattach", "{{ .Name }}", "--storagectl" , "SATA Controller", "--port", "4", "--type", "dvddrive", "--medium", "${var.virtio_driver_disk}" ]
+        [ "modifyvm", "{{ .Name }}", "--paravirtprovider", "${var.paravirtprovider}" ]
     ]
 }
 
@@ -69,13 +69,14 @@ source "qemu" "windows" {
     cpus                = "${var.cpu_count}"
     memory              = "${var.mem_size}"
     disk_size           = "${var.disk_size}"
+    winrm_password      = "${var.winrm_password}"
     shutdown_command    = "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\""
     shutdown_timeout    = "15m"
     boot_wait           = "2s"
     communicator        = "winrm"
     winrm_timeout       = "12h"
     winrm_username      = "Administrator"
-    headless            = false
+    headless            = true
     cdrom_interface     = "ide"
     cd_label            = "ANSWERFILE"
     cd_files            = [
@@ -119,16 +120,17 @@ build {
     provisioner "powershell" {
         inline = [
             "Set-PSDebug -Trace 1",
-            "Start-Process msiexec -ArgumentList '/I F:\\PowerShell.msi /passive /norestart REGISTER_MANIFEST=1 ENABLE_PSREMOTING=1' -Wait -NoNewWindow"
+            "Start-Process msiexec -ArgumentList '/I E:\\PowerShell.msi /passive /norestart REGISTER_MANIFEST=1 ENABLE_PSREMOTING=1' -Wait -NoNewWindow"
         ]
         valid_exit_codes = [0, 16001]
+        pause_before = "5m"
     }
 
     provisioner "windows-shell" {
         only = [ "virtualbox-iso.windows" ]
         inline = [
-            "E:\\cert\\VBoxCertUtil.exe add-trusted-publisher E:\\cert\\vbox-*.cer --root E:\\cert\\vbox-*.cer",
-            "E:\\VBoxWindowsAdditions.exe /S"
+            "D:\\cert\\VBoxCertUtil.exe add-trusted-publisher D:\\cert\\vbox-*.cer --root D:\\cert\\vbox-*.cer",
+            "D:\\VBoxWindowsAdditions.exe /S"
         ]
     }
 
@@ -143,7 +145,7 @@ build {
     provisioner "powershell" {
         inline = [
             "Optimize-Volume -DriveLetter C",
-            "& F:\\clear_drive.ps1"
+            "& E:\\clear_drive.ps1"
         ]
     }
 
