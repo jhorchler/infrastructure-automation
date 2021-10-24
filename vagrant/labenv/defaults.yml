@@ -1,0 +1,5 @@
+---
+dns_domain: vbox.test
+num_cpus: 2
+ram_mb: 2048
+paravirtprovider: kvm

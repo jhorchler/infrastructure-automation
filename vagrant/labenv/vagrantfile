@@ -1,0 +1,83 @@
+# version running locally
+Vagrant.require_version ">=2.2.18"
+
+# Machine definitions are stored in a YAML file. Hence, load the module.
+require "yaml"
+
+# Find current directory ..
+current_dir = File.dirname(File.expand_path(__FILE__))
+
+# and load machine definitions,
+machines = YAML.load_file("#{current_dir}/machines.yml")
+
+# set defaults
+defaults = {
+    "dns_domain" => "vbox.test",
+    "num_cpus" => 2,
+    "ram_mb" => 2048,
+    "paravirtprovider" => "kvm"
+}
+
+# and override defaults as well as add additional keys
+if File.exists?("#{current_dir}/defaults.yml")
+    defaults.merge!(YAML.load_file("#{current_dir}/defaults.yml"))
+end
+
+# configure all machines
+Vagrant.configure("2") do |config|
+
+    # provider space
+    config.vm.provider :libvirt do |lv|
+
+        # set driver
+        lv.driver = "#{defaults['paravirtprovider']}"
+
+    end # config.vm.provider :libvirt
+
+    # provisioner space global for all machines
+    # end of global provisioners
+
+    # configure all machines defined in machines.yml
+    machines.each do |machine|
+
+        # define a new machine if "name" and "box" are given
+        if machine.has_key?("name") && machine.has_key?("box")
+
+            config.vm.define machine["name"] do |node|
+
+                # set box name
+                node.vm.box = "#{machine['box']}"
+
+                # never check for updates as local box must be used
+                node.vm.box_check_update = machine.fetch("box_check_update", false)
+
+                # set communicator
+                node.vm.communicator = machine.fetch("communicator", "ssh")
+
+                # set host os
+                node.vm.guest = machine.fetch("guest_os", :linux)
+
+                # set hostname inside box
+                node.vm.hostname = "#{machine['name']}.#{machine.fetch('server_domain', defaults['dns_domain'])}"
+
+                # provider space
+                node.vm.provider :libvirt do |box|
+
+                    # set title
+                    box.title = machine["name"]
+
+                    # number of virtual CPUs
+                    box.cpus = machine.fetch("cpus", defaults["num_cpus"])
+
+                    # memory
+                    box.memory = machine.fetch("memory", defaults["ram_mb"])
+
+                end # node.vm.provider
+
+            end # config.vm.define
+
+        end # if machine has_key (name)
+
+    end # machines.each
+
+end # Vagrant.configure

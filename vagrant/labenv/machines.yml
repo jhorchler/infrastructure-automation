@@ -1,0 +1,5 @@
+---
+- name: lxoradb01
+  box: opensuse15
+- name: lxoraud01
+  box: opensuse15
