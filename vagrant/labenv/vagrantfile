@@ -15,7 +15,10 @@ defaults = {
     "dns_domain" => "vbox.test",
     "num_cpus" => 2,
     "ram_mb" => 2048,
-    "paravirtprovider" => "kvm"
+    "paravirtprovider" => "kvm",
+    "keymap" => "en-us",
+    "nic_type" => "virtio",
+    "machine_type" => "q35"
 }
 
 # and override defaults as well as add additional keys
@@ -71,6 +74,15 @@ Vagrant.configure("2") do |config|
 
                     # memory
                     box.memory = machine.fetch("memory", defaults["ram_mb"])
+
+                    # keymap to use
+                    box.keymap = machine.fetch("keymap", defaults["keymap"])
+
+                    # network interface type
+                    box.nic_model_type = machine.fetch("nic_type", defaults["nic_type"])
+
+                    # machine type
+                    box.machine_type = machine.fetch("machine_type", defaults["machine_type"])
 
                 end # node.vm.provider
 
