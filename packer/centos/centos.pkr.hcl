@@ -31,7 +31,7 @@ source "virtualbox-iso" "centos" {
     rtc_time_base          = "UTC"
     hard_drive_interface   = "sata"
     guest_additions_mode   = "upload"
-    headless               = true
+    headless               = false
     usb                    = true
     ssh_username           = "root"
     ssh_password           = "${var.root_password}"
@@ -57,7 +57,7 @@ source "qemu" "centos" {
     ssh_password        = "${var.root_password}"
     ssh_timeout         = "15m"
     ssh_pty             = true
-    headless            = true
+    headless            = false
 }
 
 build {
@@ -166,7 +166,7 @@ build {
             "qemu.centos8"
         ]
         inline = [
-            "/usr/bin/yum -y install qemu-guest-agent"
+            "/usr/bin/yum -y install qemu-guest-agent nfs-utils"
         ]
     }
 

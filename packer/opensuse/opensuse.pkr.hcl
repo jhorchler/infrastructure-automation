@@ -31,7 +31,7 @@ source "virtualbox-iso" "opensuse" {
     pause_before_connecting = "3m"
     rtc_time_base           = "UTC"
     ssh_pty                 = true
-    headless                = true
+    headless                = false
     usb                     = true
     keep_registered         = "${var.keep_registered}"
     vboxmanage              = [
@@ -58,7 +58,7 @@ source "qemu" "opensuse" {
     ssh_password        = "${var.root_password}"
     ssh_timeout         = "15m"
     ssh_pty             = true
-    headless            = true
+    headless            = false
     http_content            = {
         "/autoinst.xml" = templatefile("${path.root}/${var.http_directory}/${var.autoyast_template}", {
             boot_device   = "vda",
@@ -182,7 +182,7 @@ build {
             "qemu.opensuse15"
         ]
         inline = [
-            "zypper install -y -n qemu-guest-agent"
+            "zypper install -y -n qemu-guest-agent nfs-client"
         ]
     }
 
@@ -203,8 +203,8 @@ build {
         pause_before = "5s"
         inline = [
             "zypper clean --all",
-            "rm /var/lib/wicked/* > /dev/null 2>&1",
-            "rm /etc/udev/rules.d/70-persistent-net.rules",
+            "rm -v /var/lib/wicked/* > /dev/null 2>&1",
+            "rm -v /etc/udev/rules.d/70-persistent-net.rules",
             "sed -i /HWADDR/d /etc/sysconfig/network/ifcfg-eth0",
             "dd if=/dev/zero of=/junk bs=1M || true",
             "rm -f /junk"
