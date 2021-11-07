@@ -1,5 +1,5 @@
 packer {
-    required_version = ">= 1.7.5"
+    required_version = ">= 1.7.0"
     required_plugins {
         qemu = {
             version = ">= 1.0.1"
@@ -170,7 +170,8 @@ build {
             "virtualbox-iso.opensuse15"
         ]
         inline = [
-            "zypper install -y -n virtualbox-guest-tools",
+            "zypper install -y -n virtualbox-guest-tools virtualbox-guest-kmp-default",
+            "echo vboxsf >/etc/modules-load.d/vboxsf.conf"
         ]
     }
 
@@ -202,6 +203,9 @@ build {
         pause_before = "5s"
         inline = [
             "zypper clean --all",
+            "rm /var/lib/wicked/* > /dev/null 2>&1",
+            "rm /etc/udev/rules.d/70-persistent-net.rules",
+            "sed -i /HWADDR/d /etc/sysconfig/network/ifcfg-eth0",
             "dd if=/dev/zero of=/junk bs=1M || true",
             "rm -f /junk"
         ]
