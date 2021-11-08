@@ -1,5 +1,7 @@
 ---
 - name: lxoradb01
   box: opensuse15
+  ssh_user: root
 - name: lxoraud01
   box: opensuse15
+  ssh_user: root
