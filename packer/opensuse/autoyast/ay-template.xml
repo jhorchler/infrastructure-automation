@@ -184,10 +184,6 @@
             <pattern>yast2_basis</pattern>
         </patterns>
 
-        <products config:type="list">
-            <product>openSUSE</product>
-        </products>
-
         <packages config:type="list">
             <package>ca-certificates-mozilla</package>
             <package>curl</package>
@@ -200,6 +196,8 @@
             <package>sudo</package>
             <package>vim</package>
             <package>wget</package>
+            <package>openssh</package>
+            <package>${extra_package}</package>
         </packages>
 
         <do_online_update config:type="boolean">true</do_online_update>

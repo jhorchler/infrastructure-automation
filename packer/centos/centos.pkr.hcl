@@ -1,15 +1,11 @@
 packer {
-    required_version = ">= 1.7.0"
+    required_version = ">= 1.7.8"
     required_plugins {
         qemu = {
             version = ">= 1.0.1"
             source = "github.com/hashicorp/qemu"
         }
     }
-}
-
-locals {
-    build_time = regex_replace(timestamp(), "[- TZ:]", "")
 }
 
 source "virtualbox-iso" "centos" {
@@ -65,13 +61,13 @@ build {
         name             = "centos7"
         iso_url          = "${var.iso_url_7}"
         iso_checksum     = "${var.iso_checksum_7}"
-        vm_name          = "centos7-${local.build_time}"
+        vm_name          = "centos7"
         output_directory = "${var.packer_out_path}7"
         boot_command     = [
             "<up><wait>",
             "<tab><wait>",
             "<bs><bs><bs><bs><bs>",
-            "inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg ",
+            "inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg ",
             "ip=dhcp inst.text inst.nosave=all ",
             "os_version=7 ",
             "inst_repo=${var.install_mirror_7} ",
@@ -84,13 +80,13 @@ build {
         name             = "centos8"
         iso_url          = "${var.iso_url_8}"
         iso_checksum     = "${var.iso_checksum_8}"
-        vm_name          = "centos8-${local.build_time}"
+        vm_name          = "centos8"
         output_directory = "${var.packer_out_path}8"
         boot_command     = [
             "<up><wait>",
             "<tab><wait>",
             "<bs><bs><bs><bs><bs>",
-            "inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg ",
+            "inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg ",
             "ip=dhcp inst.text inst.nosave=all ",
             "os_version=8 ",
             "inst_repo=${var.install_mirror_8} ",
@@ -103,13 +99,13 @@ build {
         name             = "centos7"
         iso_url          = "${var.iso_url_7}"
         iso_checksum     = "${var.iso_checksum_7}"
-        vm_name          = "centos7-${local.build_time}"
+        vm_name          = "centos7"
         output_directory = "${var.packer_out_path}7"
         boot_command     = [
             "<up><wait>",
             "<tab><wait>",
             "<bs><bs><bs><bs><bs>",
-            "inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg ",
+            "inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg ",
             "ip=dhcp inst.text inst.nosave=all ",
             "os_version=7 ",
             "inst_repo=${var.install_mirror_7} ",
@@ -122,13 +118,13 @@ build {
         name             = "centos8"
         iso_url          = "${var.iso_url_8}"
         iso_checksum     = "${var.iso_checksum_8}"
-        vm_name          = "centos8-${local.build_time}"
+        vm_name          = "centos8"
         output_directory = "${var.packer_out_path}8"
         boot_command     = [
             "<up><wait>",
             "<tab><wait>",
             "<bs><bs><bs><bs><bs>",
-            "inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/ks.cfg ",
+            "inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg ",
             "ip=dhcp inst.text inst.nosave=all ",
             "os_version=8 ",
             "inst_repo=${var.install_mirror_8} ",
@@ -146,6 +142,7 @@ build {
     }
 
     provisioner "shell" {
+        pause_before = "5s"
         only = [
             "virtualbox-iso.centos7",
             "virtualbox-iso.centos8"
@@ -197,6 +194,6 @@ build {
 
     post-processor "vagrant" {
         keep_input_artifact = false
-        output              = "${var.box_directory}/{{.Provider}}_${local.build_time}.box"
+        output              = "${var.box_directory}/${source.type}_${source.name}.box"
     }
 }
