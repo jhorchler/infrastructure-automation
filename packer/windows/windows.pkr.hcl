@@ -1,9 +1,13 @@
 packer {
-    required_version = ">= 1.7.0"
+    required_version = ">= 1.7.8"
     required_plugins {
         qemu = {
             version = ">= 1.0.1"
-            source = "github.com/hashicorp/qemu"
+            source  = "github.com/hashicorp/qemu"
+        }
+        virtualbox = {
+            version = ">= 1.0.1"
+            source  = "github.com/hashicorp/virtualbox"
         }
     }
 }
@@ -33,8 +37,9 @@ source "virtualbox-iso" "windows" {
     shutdown_command        = "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\""
     shutdown_timeout        = "15m"
     cd_label                = "ANSWERFILE"
-    headless                = true
+    headless                = false
     usb                     = true
+    firmware                = "efi"
     cd_files                = [
         "cdrom/PowerShell.msi",
         "cdrom/WUA_SearchDownloadInstall.vbs",
@@ -45,14 +50,13 @@ source "virtualbox-iso" "windows" {
         "autounattend.xml" = templatefile("${path.root}/${var.unattended_directory}/${var.unattended_template}", {
             admin_password = "${var.winrm_password}",
             image_name     = "${var.image_name}",
-            driver_path    = "${var.driver_path}"
+            driver_path    = "${var.driver_path_vbox}"
         })
     }
     boot_command            = [
         "<spacebar>"
     ]
     vboxmanage              = [
-        [ "modifyvm", "{{ .Name }}", "--firmware", "efi" ],
         [ "modifyvm", "{{ .Name }}", "--paravirtprovider", "${var.paravirtprovider}" ]
     ]
 }
@@ -76,7 +80,7 @@ source "qemu" "windows" {
     communicator        = "winrm"
     winrm_timeout       = "12h"
     winrm_username      = "Administrator"
-    headless            = true
+    headless            = false
     cdrom_interface     = "ide"
     cd_label            = "ANSWERFILE"
     cd_files            = [
@@ -89,7 +93,7 @@ source "qemu" "windows" {
         "autounattend.xml" = templatefile("${path.root}/${var.unattended_directory}/${var.unattended_template}", {
             admin_password = "${var.winrm_password}",
             image_name     = "${var.image_name}",
-            driver_path    = "${var.driver_path}"
+            driver_path    = "${var.driver_path_kvm}"
         })
     }
     boot_command            = [
@@ -118,6 +122,17 @@ build {
     }
 
     provisioner "powershell" {
+        only = [ "virtualbox-iso.windows" ]
+        inline = [
+            "Set-PSDebug -Trace 1",
+            "Start-Process msiexec -ArgumentList '/I F:\\PowerShell.msi /passive /norestart REGISTER_MANIFEST=1 ENABLE_PSREMOTING=1' -Wait -NoNewWindow"
+        ]
+        valid_exit_codes = [0, 16001]
+        pause_before = "5m"
+    }
+
+    provisioner "powershell" {
+        only = [ "qemu.windows" ]
         inline = [
             "Set-PSDebug -Trace 1",
             "Start-Process msiexec -ArgumentList '/I E:\\PowerShell.msi /passive /norestart REGISTER_MANIFEST=1 ENABLE_PSREMOTING=1' -Wait -NoNewWindow"
@@ -129,8 +144,8 @@ build {
     provisioner "windows-shell" {
         only = [ "virtualbox-iso.windows" ]
         inline = [
-            "D:\\cert\\VBoxCertUtil.exe add-trusted-publisher D:\\cert\\vbox-*.cer --root D:\\cert\\vbox-*.cer",
-            "D:\\VBoxWindowsAdditions.exe /S"
+            "E:\\cert\\VBoxCertUtil.exe add-trusted-publisher E:\\cert\\vbox-*.cer --root E:\\cert\\vbox-*.cer",
+            "E:\\VBoxWindowsAdditions.exe /S"
         ]
     }
 
@@ -145,12 +160,25 @@ build {
     provisioner "powershell" {
         inline = [
             "Optimize-Volume -DriveLetter C",
+        ]
+    }
+
+    provisioner "powershell" {
+        only = [ "virtualbox-iso.windows" ]
+        inline = [
+            "& F:\\clear_drive.ps1"
+        ]
+    }
+
+    provisioner "powershell" {
+        only = [ "qemu.windows" ]
+        inline = [
             "& E:\\clear_drive.ps1"
         ]
     }
 
     post-processor "vagrant" {
         keep_input_artifact = false
-        output              = "${var.box_directory}/{{.Provider}}-${var.os_version}.box"
+        output              = "${var.box_directory}/${source.type}_${var.os_version}.box"
     }
 }

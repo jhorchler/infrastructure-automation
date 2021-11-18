@@ -1,4 +1,11 @@
-$action = New-ScheduledTaskAction -Execute "C:\Windows\System32\cscript.exe" -Argument "E:\WUA_SearchDownloadInstall.vbs /Automate"
+if (Test-Path -Path "E:\WUA_SearchDownloadInstall.vbs" -PathType Leaf) {
+  $action = New-ScheduledTaskAction -Execute "C:\Windows\System32\cscript.exe" -Argument "E:\WUA_SearchDownloadInstall.vbs /Automate"
+} elseif(Test-Path -Path "F:\WUA_SearchDownloadInstall.vbs" -PathType Leaf) {
+  $action = New-ScheduledTaskAction -Execute "C:\Windows\System32\cscript.exe" -Argument "F:\WUA_SearchDownloadInstall.vbs /Automate"
+} else {
+  throw "Scipt disk not attached"
+}
+
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date -Format t)
 Register-ScheduledTask -TaskName "WinUpdate" -Action $action -Trigger $trigger
 Start-ScheduledTask -TaskName "WinUpdate"

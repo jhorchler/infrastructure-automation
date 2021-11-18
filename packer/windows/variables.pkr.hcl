@@ -68,8 +68,12 @@ variable "paravirtprovider" {
     default     = "hyperv"
 }
 
-variable "driver_path" {
-    description = "Directory on the VIRTIO disk where to find the drivers. Must be injected into template.xml"
+variable "driver_path_kvm" {
+    description = "Directory on the VIRTIO disk where to find the drivers for qemu build. Must be injected into template.xml"
+}
+
+variable "driver_path_vbox" {
+    description = "Directory on the VIRTIO disk where to find the drivers for virtualbox-iso build. Must be injected into template.xml"
 }
 
 variable "box_directory" {
