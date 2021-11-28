@@ -185,6 +185,15 @@ build {
     }
 
     provisioner "shell" {
+        inline = [
+            "set -x",
+            "source /etc/os-release",
+            "curl https://packages.microsoft.com/config/rhel/$VERSION_ID/prod.repo | sudo tee /etc/yum.repos.d/microsoft.repo",
+            "yum install -y powershell"
+        ]
+    }
+
+    provisioner "shell" {
         pause_before = "5s"
         inline = [
             "set -x",
