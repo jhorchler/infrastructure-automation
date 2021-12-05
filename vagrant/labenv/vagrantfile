@@ -18,7 +18,11 @@ defaults = {
     "paravirtprovider" => "kvm",
     "keymap" => "en-us",
     "nic_type" => "virtio",
-    "machine_type" => "q35"
+    "machine_type" => "q35",
+    "guest_os" => :linux,
+    "communicator" => "ssh",
+    "winrm_transport" => :plaintext,
+    "winrm_basic_only" => true
 }
 
 # and override defaults as well as add additional keys
@@ -37,6 +41,25 @@ Vagrant.configure("2") do |config|
 
     end # config.vm.provider :libvirt
 
+    config.vm.provider :virtualbox do |vb|
+
+        # all base boxes should have virtio drivers installed
+        vb.default_nic_type = "virtio"
+
+        # Linux should run the HWClock in UTC - set it by default
+        vb.customize ["modifyvm", :id, "--rtcuseutc", "on"]
+
+        # no audio needed
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+
+        # disable recording
+        vb.customize ["modifyvm", :id, "--recording", "off"]
+
+        # disable remote display (needs Extension Pack)
+        vb.customize ["modifyvm", :id, "--vrde", "off"]
+
+    end # config.vm.provider "virtualbox"
+
     # provisioner space global for all machines
     # end of global provisioners
 
@@ -54,11 +77,11 @@ Vagrant.configure("2") do |config|
                 # never check for updates as local box must be used
                 node.vm.box_check_update = machine.fetch("box_check_update", false)
 
-                # set communicator
-                node.vm.communicator = machine.fetch("communicator", "ssh")
-
                 # set host os
-                node.vm.guest = machine.fetch("guest_os", :linux)
+                node.vm.guest = machine.fetch("guest_os", defaults["guest_os"])
+
+                # set communicator
+                node.vm.communicator = machine.fetch("communicator", defaults["communicator"])
 
                 # set hostname inside box
                 node.vm.hostname = "#{machine['name']}.#{machine.fetch('server_domain', defaults['dns_domain'])}"
@@ -68,6 +91,18 @@ Vagrant.configure("2") do |config|
                     node.ssh.username = "#{machine['ssh_user']}"
                     node.ssh.insert_key = false
                     node.ssh.keys_only = false
+                end
+
+                # or winrm
+                if machine.fetch("guest_os", defaults["guest_os"]) == :windows
+                    # defaults are vagrant/vagrant
+                    if machine.has_key?("winrm_user") && machine.has_key?("winrm_password")
+                        node.winrm.username = "#{machine['winrm_user']}"
+                        node.winrm.password = "#{machine['winrm_password']}"
+                    end
+                    # my base boxes are build that way
+                    node.winrm.transport = machine.fetch("winrm_transport", defaults["winrm_transport"])
+                    node.winrm.basic_auth_only = machine.fetch("winrm_basic_only", defaults["winrm_basic_only"])
                 end
 
                 # provider space
@@ -90,6 +125,29 @@ Vagrant.configure("2") do |config|
 
                     # machine type
                     box.machine_type = machine.fetch("machine_type", defaults["machine_type"])
+
+                end # node.vm.provider
+
+                node.vm.provider :virtualbox do |box|
+
+                    # set title
+                    box.name = machine["name"]
+
+                    # number of virtual CPUs
+                    box.cpus = machine.fetch("cpus", defaults["num_cpus"])
+
+                    # memory
+                    box.memory = machine.fetch("memory", defaults["ram_mb"])
+
+                    # reset HW clock if thjs is windows
+                    if machine.fetch("guest_os", defaults["guest_os"]) == :windows
+
+                        box.customize ["modifyvm", :id, "--rtcuseutc", "off"]
+
+                    end
+
+                    # paravirt driver
+                    box.customize ['modifyvm', :id, '--paravirtprovider', machine.fetch("paravirtprovider", "#{defaults['paravirtprovider']}")]
 
                 end # node.vm.provider
 
