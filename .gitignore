@@ -1,2 +1,2 @@
-vagrant/labenv/machines.yml
 .vagrant
+*.msi
