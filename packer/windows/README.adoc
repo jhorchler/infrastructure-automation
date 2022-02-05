@@ -1,5 +1,4 @@
 = Packer Windows Build
-:icons: font
 
 These files create a minimal Windows Server box for Windows Server 2022 Standard Core.
 
@@ -12,7 +11,7 @@ For this build the evaluation iso from Microsoft is used. To use this project
 * install/download https://www.packer.io/[packer]
 * have a Windows OS on which Hyper-V is included and enable the feature
 * ensure that the Windows Account used for the build is in the 'Hyper-V Administrators' group
-* create an externe Hyper-V Switch connected to your external network adapter
+* create an externe Hyper-V Switch connected to your external network adapter (in this example `extpacker` is used)
 * download https://docs.microsoft.com/de-de/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7[PowerShell Core] and put as pwsh.msi in `cd` subfolder
 * to build the CD containing the answer file (Floppy is not available in UEFI mode) install a CD build tool and ensure that it is included in your path
 ** I'm using https://docs.microsoft.com/en-us/windows-hardware/get-started/adk-install[oscdimg] as this is included in the Windows ADK used to create the answer file
@@ -26,6 +25,12 @@ To inject this, a template `server-2022-standard-core.xml` is used to generate `
 This file will be included on the `cd` that is build.
 
 All files in `cd` will be included in a new iso file packer creates and mounts to the Hyper-V machine.
+
+[IMPORTANT]
+====
+Using an external switch had slowed down my network upload speed horribly.
+I needed to disable `Large Send Offload Version 2` for IPv4 and IPv6 on the Hyper-V Virtual Ethernet Adapter that was attached from my host OS to the virtual switch to fix that.
+====
 
 == Settings
 

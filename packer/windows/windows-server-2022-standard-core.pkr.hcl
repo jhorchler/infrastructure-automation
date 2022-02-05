@@ -5,6 +5,10 @@ packer {
             version = ">= 1.0.0"
             source  = "github.com/hashicorp/hyperv"
         }
+        git = {
+            version = ">= 0.2.0"
+            source = "github.com/ethanmdavidson/git"
+        }
     }
 }
 
@@ -13,6 +17,15 @@ variable "winrm_password" {
     description = "Password of Administrator"
     type        = string
     sensitive   = true
+}
+
+// data sources
+data "git-commit" "cwd-head" { }
+
+// locals
+locals {
+    // the first 8 chars of the HEAD commit will be used in box file name
+    truncated_sha = substr(data.git-commit.cwd-head.hash, 0, 8)
 }
 
 // define installation source
@@ -28,7 +41,7 @@ source "hyperv-iso" "win2022stdcore" {
     memory               = 8484   # MB
     guest_additions_mode = "none" # Integration services are built-in Windows Server 2022
     vm_name              = "win2022base"
-    switch_name          = "ExtPacker"
+    switch_name          = "extpacker"
     cpus                 = 4
     generation           = 2
     enable_secure_boot   = true
@@ -58,7 +71,7 @@ source "hyperv-iso" "win2022stdcore" {
 
     // boot configuration
     boot_command = [ "<spacebar>" ]
-    boot_wait    = "2s"
+    boot_wait    = "1s"
 }
 
 // build the machine
@@ -86,7 +99,7 @@ build {
 
     // install new pwsh command
     provisioner "powershell" {
-        pause_before = "5m"
+        pause_before = "2m"
         valid_exit_codes = [0, 16001]
         inline = [
             "Start-Process msiexec -ArgumentList '/I E:\\pwsh.msi /passive /norestart REGISTER_MANIFEST=1 ENABLE_PSREMOTING=1' -Wait -NoNewWindow"
@@ -118,9 +131,9 @@ build {
 
     // export as vagrant box
     post-processor "vagrant" {
-        keep_input_artifact = false
-        output              = "B:/depot/${source.type}_win2022stdcore.box"
+        keep_input_artifact  = false
+        vagrantfile_template = "${path.root}/template/vagrantfile"
+        output               = "B:/depot/boxes/${source.type}_${source.name}_${local.truncated_sha}.box"
     }
-
 
 }
