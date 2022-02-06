@@ -7,7 +7,7 @@ packer {
         }
         git = {
             version = ">= 0.2.0"
-            source = "github.com/ethanmdavidson/git"
+            source  = "github.com/ethanmdavidson/git"
         }
     }
 }
@@ -19,36 +19,48 @@ variable "winrm_password" {
     sensitive   = true
 }
 
-// data sources
-data "git-commit" "cwd-head" { }
-
-// locals
+// locals -> all hardcoded variables
 locals {
     // the first 8 chars of the HEAD commit will be used in box file name
-    truncated_sha = substr(data.git-commit.cwd-head.hash, 0, 8)
+    truncated_sha        = substr(data.git-commit.cwd-head.hash, 0, 8)
+    hyperv_output        = "A:/hyper-v-root/packer-win2022stdcore"
+    box_output           = "B:/depot/boxes"
+    iso_url              = "B:/depot/iso/windows-server-2022-eval.iso"
+    iso_checksum         = "sha256:4F1457C4FE14CE48C9B2324924F33CA4F0470475E6DA851B39CCBF98F44E7852"
+    au_templatefile      = "template/server-2022-standard-core.xml"
+    vagrantfile_template = "template/vagrantfile"
+    switch_name          = "iacswitch"
+    shutdown_timeout     = "15m"
+    winrm_timeout        = "1h"
+    disk_size            = 71680
+    memory               = 8484
+    cpus                 = 4
 }
+
+// data sources
+data "git-commit" "cwd-head" { }
 
 // define installation source
 source "hyperv-iso" "win2022stdcore" {
 
     // source ISO file
-    iso_checksum = "sha256:4F1457C4FE14CE48C9B2324924F33CA4F0470475E6DA851B39CCBF98F44E7852"
-    iso_url      = "B:/depot/iso/windows-server-2022-eval.iso"
+    iso_checksum = "${local.iso_checksum}"
+    iso_url      = "${local.iso_url}"
 
     // general builder configuration
-    output_directory     = "A:/hyper-v-root/packer-win2022stdcore"
-    disk_size            = 71680  # MB
-    memory               = 8484   # MB
+    output_directory     = "${local.hyperv_output}"
+    disk_size            = local.disk_size  # MB
+    memory               = local.memory     # MB
     guest_additions_mode = "none" # Integration services are built-in Windows Server 2022
-    vm_name              = "win2022base"
-    switch_name          = "extpacker"
-    cpus                 = 4
+    vm_name              = "${uuidv4()}"
+    switch_name          = "${local.switch_name}"
+    cpus                 = local.cpus
     generation           = 2
     enable_secure_boot   = true
 
     // how to shutdown the machine
     shutdown_command = "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\""
-    shutdown_timeout = "15m"
+    shutdown_timeout = "${local.shutdown_timeout}"
 
     // CD containing autounattend.xml , scripts and powershell msi file
     cd_label = "ANSWERFILE"
@@ -58,7 +70,7 @@ source "hyperv-iso" "win2022stdcore" {
         "${path.root}/cd/clear_drive.ps1",                # to delete unneeded data and compact the drive
     ]
     cd_content = {
-        "Autounattend.xml" = templatefile("template/server-2022-standard-core.xml", {
+        "Autounattend.xml" = templatefile("${local.au_templatefile}", {
             admin_password = "${var.winrm_password}"
         })
     }
@@ -67,7 +79,7 @@ source "hyperv-iso" "win2022stdcore" {
     communicator   = "winrm"
     winrm_username = "Administrator"
     winrm_password = "${var.winrm_password}"
-    winrm_timeout  = "1h" # gives enough time for unattended installation to finish
+    winrm_timeout  = "${local.winrm_timeout}"
 
     // boot configuration
     boot_command = [ "<spacebar>" ]
@@ -132,8 +144,8 @@ build {
     // export as vagrant box
     post-processor "vagrant" {
         keep_input_artifact  = false
-        vagrantfile_template = "${path.root}/template/vagrantfile"
-        output               = "B:/depot/boxes/${source.type}_${source.name}_${local.truncated_sha}.box"
+        vagrantfile_template = "${path.root}/${local.vagrantfile_template}"
+        output               = "${local.box_output}/${source.type}_${source.name}_${local.truncated_sha}.box"
     }
 
 }
