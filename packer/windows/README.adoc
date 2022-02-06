@@ -30,6 +30,7 @@ All files in `cd` will be included in a new iso file packer creates and mounts t
 ====
 Using an external switch had slowed down my network upload speed horribly.
 I needed to disable `Large Send Offload Version 2` for IPv4 and IPv6 on the Hyper-V Virtual Ethernet Adapter that was attached from my host OS to the virtual switch to fix that.
+In addition network download speed inside the VM was very slow until `EnableSoftwareRsc` was set to `$false` on the external switch used.
 ====
 
 == Settings
