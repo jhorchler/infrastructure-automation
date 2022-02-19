@@ -1,2 +1,8 @@
+# ignore any vagrant folder
 .vagrant
+
+# windows contains pwsh.msi
 *.msi
+
+# during development the RNG schema for autoyast is extracted here
+packer/opensuse/template/schema

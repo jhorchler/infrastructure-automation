@@ -1,0 +1,3 @@
+= Packer OpenSUSE Build
+
+These files create a minimal OpenSUSE box.
