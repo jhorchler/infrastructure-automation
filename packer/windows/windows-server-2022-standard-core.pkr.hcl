@@ -48,15 +48,16 @@ source "hyperv-iso" "win2022stdcore" {
     iso_url      = "${local.iso_url}"
 
     // general builder configuration
-    output_directory     = "${local.hyperv_output}"
-    disk_size            = local.disk_size  # MB
-    memory               = local.memory     # MB
-    guest_additions_mode = "none" # Integration services are built-in Windows Server 2022
-    vm_name              = "${uuidv4()}"
-    switch_name          = "${local.switch_name}"
-    cpus                 = local.cpus
-    generation           = 2
-    enable_secure_boot   = true
+    output_directory      = "${local.hyperv_output}"
+    disk_size             = local.disk_size  # MB
+    memory                = local.memory     # MB
+    guest_additions_mode  = "none" # Integration services are built-in Windows Server 2022
+    vm_name               = "${uuidv4()}"
+    switch_name           = "${local.switch_name}"
+    cpus                  = local.cpus
+    generation            = 2
+    enable_secure_boot    = true
+    enable_dynamic_memory = true
 
     // how to shutdown the machine
     shutdown_command = "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\""
