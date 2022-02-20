@@ -6,7 +6,7 @@ packer {
             source  = "github.com/hashicorp/hyperv"
         }
         git = {
-            version = ">= 0.2.0"
+            version = ">= 0.3.0"
             source  = "github.com/ethanmdavidson/git"
         }
     }
