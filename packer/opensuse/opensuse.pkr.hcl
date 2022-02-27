@@ -37,13 +37,14 @@ source "virtualbox-iso" "opensuse15" {
     rtc_time_base        = "UTC"
     disk_size            = 81920
     nic_type             = "virtio"
-    gfx_controller       = "none"
+    gfx_controller       = "vmsvga"
+    gfx_vram_size        = 40
     guest_os_type        = "OpenSUSE_64"
     hard_drive_interface = "sata"
     sata_port_count      = 5
     iso_interface        = "sata"
     disk_additional_size = [71680]
-    vm_name              = "${uuidv4()}"
+    vm_name              = "opensuse-${substr(uuidv4(), 0, 8)}"
     guest_additions_mode = "disable"
 
     # ISO configuration
@@ -68,15 +69,20 @@ source "virtualbox-iso" "opensuse15" {
     shutdown_command = "/usr/bin/systemctl poweroff"
 
     # hardware configuration
-    cpus   = 4
+    cpus   = 1
     memory = 8484
 
     # communicator configuration
     ssh_username            = "root"
     ssh_password            = "${var.root_password}"
-    ssh_timeout             = "15m"
+    ssh_timeout             = "25m"
     ssh_pty                 = true
-    pause_before_connecting = "2m"
+    pause_before_connecting = "1m"
+
+    # modifyvm
+    vboxmanage = [
+        [ "modifyvm", "{{.Name}}", "--vrde", "off" ],
+    ]
 
     # boot configuration
     boot_command     = [
@@ -103,10 +109,20 @@ build {
     # only one source is defined
     sources = ["virtualbox-iso.opensuse15"]
 
+    # load vbox modules at next startup
+    provisioner "shell" {
+        inline = [
+            "set -x",
+            "echo 'allow_unsupported_modules 1' > /etc/modprobe.d/10-unsupported-modules.conf",
+            "printf '%s\n%s\n%s\n%s\n' vboxdrv vboxnetadp vboxnetflt vboxsf > /etc/modules-load.d/vbox-guest-additions.conf"
+        ]
+    }
+
     # online update
     provisioner "shell" {
         expect_disconnect = true
         inline = [
+            "set -x",
             "zypper --no-color --non-interactive update",
             "systemctl reboot"
         ]
@@ -121,16 +137,20 @@ build {
             "touch ~/.ssh/authorized_keys",
             "chmod 0600 ~/.ssh/authorized_keys",
             "echo 'ssh-ed25519 ${var.ssh_ed25519_key} jhorchler' > ~/.ssh/authorized_keys",
+        ]
+    }
+
+    # cleanup and fill up file space for compression later during export
+    provisioner "shell" {
+        inline = [
+            "set -x",
             "zypper clean --all",
             "rm -vf /var/lib/wicked/*",
             "rm -vf /etc/udev/rules.d/70-persistent-net.rules",
             "sed -i /HWADDR/d /etc/sysconfig/network/ifcfg-eth0",
-            "dd if=/dev/zero of=/junk bs=1M || true",
-            "rm -f /junk"
+            "findmnt --output=target --real --list --noheadings | while read TARGET; do dd if=/dev/zero of=$TARGET/junk bs=1M status=none || rm -vf $TARGET/junk; done",
         ]
     }
-
-    provisioner "breakpoint" {}
 
     # export as vagrant box
     post-processor "vagrant" {

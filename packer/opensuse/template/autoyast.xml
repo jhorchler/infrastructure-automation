@@ -17,6 +17,7 @@
             <confirm config:type="boolean">false</confirm>
             <final_reboot config:type="boolean">true</final_reboot>
             <forceboot config:type="boolean">true</forceboot>
+            <second_stage config:type="boolean">false</second_stage>
         </mode>
 
         <!--
@@ -522,7 +523,7 @@
             - reserver memory size automatically
         -->
         <add_crash_kernel config:type="boolean">true</add_crash_kernel>
-        <crash_kernel>auto</crash_kernel>
+        <crash_kernel>256M-2G:64M,2G-:128M</crash_kernel>
         <general>
 
             <!--
