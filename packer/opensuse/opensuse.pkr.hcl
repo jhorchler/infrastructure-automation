@@ -1,9 +1,9 @@
 packer {
     required_version = ">= 1.7.0"
     required_plugins {
-        hyperv = {
+        virtualbox = {
             version = ">= 1.0.0"
-            source  = "github.com/hashicorp/hyperv"
+            source  = "github.com/hashicorp/virtualbox"
         }
         git = {
             version = ">= 0.3.0"
@@ -12,7 +12,7 @@ packer {
     }
 }
 
-// only two variables are used to set root Password and ssh public key
+# only two variables are used to set root Password and ssh public key
 variable "root_password" {
     description = "Password of root"
     type        = string
@@ -25,63 +25,60 @@ variable "ssh_ed25519_key" {
     sensitive   = true
 }
 
-
-// locals
-locals {
-    // the first 8 chars of the HEAD commit will be used in box file name
-    truncated_sha        = substr(data.git-commit.cwd-head.hash, 0, 8)
-    hyperv_output        = "A:/hyper-v-root/opensuse"
-    box_output           = "B:/depot/boxes"
-    iso_url              = "B:/depot/iso/openSUSE-15.iso"
-    iso_checksum         = "sha256:40DA6B6FD17F552CD5AA3526D1A5EE091A948C8890CA70D03C9F3F8CAA2E0876"
-    install_mirror       = "https://rsync.opensuse.org/distribution/leap/15.3/repo/oss/"
-    ay_templatefile      = "template/autoyast.xml"
-    vagrantfile_template = "template/vagrantfile"
-    switch_name          = "iacswitch"
-    disk_size            = 81920
-    second_disk_size     = 71680
-    memory               = 8484
-    tmp_size             = 1024
-    cpus                 = 4
-}
-
-// data sources
+# data sources
 data "git-commit" "cwd-head" { }
 
-// define installation source
-source "hyperv-iso" "opensuse15" {
+# define installation source
+source "virtualbox-iso" "opensuse15" {
 
-    // source ISO file
-    iso_checksum = "${local.iso_checksum}"
-    iso_url      = "${local.iso_url}"
+    # general configuration
+    chipset              = "ich9"
+    firmware             = "efi"
+    rtc_time_base        = "UTC"
+    disk_size            = 81920
+    nic_type             = "virtio"
+    gfx_controller       = "none"
+    guest_os_type        = "OpenSUSE_64"
+    hard_drive_interface = "sata"
+    sata_port_count      = 5
+    iso_interface        = "sata"
+    disk_additional_size = [71680]
+    vm_name              = "${uuidv4()}"
+    guest_additions_mode = "disable"
 
-    // general builder configuration
-    output_directory      = "${local.hyperv_output}"
-    disk_size             = local.disk_size  # MB
-    disk_additional_size  = [local.second_disk_size] # MB
-    disk_block_size       = 1                # MB (1 MiB recommended for Linux)
-    memory                = local.memory     # MB
-    guest_additions_mode  = "none" # Integration services are built-in OpenSUSE
-    vm_name               = "${uuidv4()}"
-    switch_name           = "${local.switch_name}"
-    cpus                  = local.cpus
-    generation            = 2
-    enable_secure_boot    = true
-    secure_boot_template  = "MicrosoftUEFICertificateAuthority"
-    enable_dynamic_memory = true
+    # ISO configuration
+    iso_checksum = "sha256:40DA6B6FD17F552CD5AA3526D1A5EE091A948C8890CA70D03C9F3F8CAA2E0876"
+    iso_url      = "B:/depot/iso/openSUSE-15.iso"
 
-    // autoinst settings
+    # Http directory configuration
     http_content = {
-        "/autoinst.xml" = templatefile("${local.ay_templatefile}", {
+        "/autoinst.xml" = templatefile("template/autoyast.xml", {
             user_password = "${var.root_password}",
-            tmpsize       = "${local.tmp_size}"
+            tmpsize       = "1024"
         })
     }
 
-    // how to shutdown the machine
-    shutdown_command      = "/usr/bin/systemctl poweroff"
+    # output configuration
+    output_directory = "A:/virtual-machines/opensuse"
 
-    // how to boot the machine
+    # run configuration
+    headless = false
+
+    # shutdown configuration
+    shutdown_command = "/usr/bin/systemctl poweroff"
+
+    # hardware configuration
+    cpus   = 4
+    memory = 8484
+
+    # communicator configuration
+    ssh_username            = "root"
+    ssh_password            = "${var.root_password}"
+    ssh_timeout             = "15m"
+    ssh_pty                 = true
+    pause_before_connecting = "2m"
+
+    # boot configuration
     boot_command     = [
         "<esc>",
         "e",
@@ -94,26 +91,19 @@ source "hyperv-iso" "opensuse15" {
         "lang=en_US ",
         "textmode=1 ",
         "self_update=1 ",
-        "install=${local.install_mirror} ",
+        "install=https://rsync.opensuse.org/distribution/leap/15.3/repo/oss/ ",
         "autoyast=http://{{.HTTPIP}}:{{.HTTPPort}}/autoinst.xml ",
         "<f10><wait>"
     ]
-
-    // connector settings
-    ssh_username            = "root"
-    ssh_password            = "${var.root_password}"
-    ssh_timeout             = "15m"
-    ssh_pty                 = true
-    pause_before_connecting = "3m"
 
 }
 
 build {
 
-    // only one source is defined
-    sources = ["hyperv-iso.opensuse15"]
+    # only one source is defined
+    sources = ["virtualbox-iso.opensuse15"]
 
-    // online update
+    # online update
     provisioner "shell" {
         expect_disconnect = true
         inline = [
@@ -122,7 +112,7 @@ build {
         ]
     }
 
-    // install ssh public key and cleanup
+    # install ssh public key and cleanup
     provisioner "shell" {
         pause_before = "1m"
         inline = [
@@ -140,11 +130,13 @@ build {
         ]
     }
 
-    // export as vagrant box
+    provisioner "breakpoint" {}
+
+    # export as vagrant box
     post-processor "vagrant" {
         keep_input_artifact  = false
-        vagrantfile_template = "${path.root}/${local.vagrantfile_template}"
-        output               = "${local.box_output}/${source.type}_${source.name}_${local.truncated_sha}.box"
+        vagrantfile_template = "${path.root}/template/vagrantfile"
+        output               = "B:/depot/boxes/${source.type}_${source.name}_${substr(data.git-commit.cwd-head.hash, 0, 8)}.box"
     }
 
 }

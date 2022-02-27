@@ -5,10 +5,9 @@ Vagrant.configure("2") do |config|
     config.vm.box_check_update = false
     config.vm.synced_folder ".", "/vagrant", SharedFoldersEnableSymlinksCreate: false
 
-    config.vm.provider "hyperv" do |hv|
-        hv.ip_address_timeout = 240
-        hv.memory = 2048
-        hv.cpus = 2
-        hv.enable_virtualization_extensions = true
+    config.vm.provider "virtualbox" do |box|
+        box.ip_address_timeout = 240
+        box.memory = 2048
+        box.cpus = 2
     end
 end
