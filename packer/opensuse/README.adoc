@@ -1,3 +1,30 @@
 = Packer OpenSUSE Build
 
 These files create a minimal OpenSUSE box.
+
+== Prerequisites and Usage
+
+To use this project
+
+* clone it
+* download https://get.opensuse.org/leap/[OpenSUSE Leap] Network Image
+* install/download https://www.packer.io/[packer]
+* install https://www.virtualbox.org/[VirtualBox]
+* create an variables file, for example `opensuse.auto.pkrvars.hcl` containing
+** the password for root or set environment variable `PKR_VAR_root_password` containing the password
+** the ssh ED25519 public key or set environment variable `PKR_VAR_ssh_ed25519_key` containing the key
+* change directory to `<repo-root>/packer`
+* run `packer init opensuse` to install the required plugins
+* run `packer build opensuse`
+
+OpenSUSE Leap 15 can use the root password from within the autoyast profile or as boot parameter.
+In this repo it's set within `template/autoyast.xml` and set using the HCL function `templatefile` to replace the variable `root_password`.
+
+== Settings
+
+[NOTE]
+====
+All settings used except the root password and ssh public key to use are hard coded to the HCL file.
+====
+
+To change settings adjust them in `opensuse.pkr.hcl` as needed.
