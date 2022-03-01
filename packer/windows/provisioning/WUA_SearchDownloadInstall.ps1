@@ -1,4 +1,4 @@
-$action = New-ScheduledTaskAction -Execute "C:\Windows\System32\cscript.exe" -Argument "E:\WUA_SearchDownloadInstall.vbs /Automate"
+$action = New-ScheduledTaskAction -Execute "C:\Windows\System32\cscript.exe" -Argument "F:\WUA_SearchDownloadInstall.vbs /Automate"
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date -Format t)
 Register-ScheduledTask -TaskName "WinUpdate" -Action $action -Trigger $trigger
 Start-ScheduledTask -TaskName "WinUpdate"
