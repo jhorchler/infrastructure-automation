@@ -57,10 +57,10 @@ source "virtualbox-iso" "win2022stdcore" {
     }
 
     # output configuration
-    output_directory = "A:/virtual-machines/win2022stdcore"
+    output_directory = "A:/virtual-disks/win2022stdcore"
 
     # run configuration
-    headless = false
+    headless = true
 
     # shutdown configuration
     shutdown_command = "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\""
