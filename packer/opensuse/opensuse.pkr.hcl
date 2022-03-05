@@ -139,11 +139,6 @@ build {
             "dotnet tool install --global PowerShell"
         ]
     }
-            #"curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.2.1/powershell-7.2.1-linux-x64.tar.gz",
-            #"mkdir -p /opt/microsoft/powershell/7",
-            #"tar xzvf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7",
-            #"chmod +x /opt/microsoft/powershell/7/pwsh",
-            #"ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh"
 
     # install ssh public key and cleanup
     provisioner "shell" {
