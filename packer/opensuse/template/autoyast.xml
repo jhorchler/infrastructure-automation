@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+<?xml-model href="schema/rng/profile.rng"
+  schematypens="http://relaxng.org/ns/structure/1.0"
+  type="application/xml"?>
+-->
 <profile xmlns="http://www.suse.com/1.0/yast2ns"
          xmlns:config="http://www.suse.com/1.0/configns">
 
@@ -356,6 +361,37 @@
         </packages>
 
     </software>
+
+    <!-- ADD-ONs =========================================================  -->
+    <add-on>
+        <add_on_others config:type="list">
+            <listentry>
+                <name>Non-OSS Repository</name>
+                <alias>openSUSE-Leap-NonOSS</alias>
+                <media_url>https://rsync.opensuse.org/distribution/leap/$releasever/repo/non-oss</media_url>
+            </listentry>
+            <listentry>
+                <name>Main Update Repository</name>
+                <alias>openSUSE-Leap-Update</alias>
+                <media_url>https://rsync.opensuse.org/update/leap/$releasever/oss</media_url>
+            </listentry>
+            <listentry>
+                <name>Update Repository (Non-Oss)</name>
+                <alias>openSUSE-Leap-NonOSS-Update</alias>
+                <media_url>https://rsync.opensuse.org/update/leap/$releasever/oss</media_url>
+            </listentry>
+            <listentry>
+                <name>Update repository with updates from SUSE Linux Enterprise 15</name>
+                <alias>SUSE-LE-Update</alias>
+                <media_url>https://rsync.opensuse.org/update/leap/$releasever/sle</media_url>
+            </listentry>
+            <listentry>
+                <name>Update repository of openSUSE Backports</name>
+                <alias>openSUSE-Leap-Backports-Update</alias>
+                <media_url>https://rsync.opensuse.org/update/leap/$releasever/backports</media_url>
+            </listentry>
+        </add_on_others>
+    </add-on>
 
     <!--
         - do not use image installation
