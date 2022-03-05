@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
 <?xml-model href="schema/rng/profile.rng"
   schematypens="http://relaxng.org/ns/structure/1.0"
   type="application/xml"?>
--->
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
 
     <!-- GENERAL SECTION ================================================== -->
@@ -17,7 +15,7 @@
             <confirm config:type="boolean">false</confirm>
             <final_reboot config:type="boolean">true</final_reboot>
             <forceboot config:type="boolean">true</forceboot>
-            <second_stage config:type="boolean">false</second_stage>
+            <!--<second_stage config:type="boolean">false</second_stage>-->
         </mode>
 
         <!--
@@ -544,6 +542,34 @@
         </general>
 
     </kdump>
+
+    <!-- SCRIPTS ========================================================== -->
+    <scripts>
+
+        <!--
+            - disable SSHD during installation
+        -->
+        <chroot-scripts config:type="list">
+            <script>
+                <chrooted config:type="boolean">true</chrooted>
+                <source>
+                    <![CDATA[systemctl stop sshd.service; systemctl disable sshd.service]]>
+                </source>
+            </script>
+        </chroot-scripts>
+
+        <!--
+            - enable SSHD after first boot
+        -->
+        <init-scripts config:type="list">
+            <script>
+                <source>
+                    <![CDATA[systemctl enable sshd.service && systemctl start sshd.service]]>
+                </source>
+            </script>
+        </init-scripts>
+
+    </scripts>
 
 </profile>
 

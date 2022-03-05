@@ -55,15 +55,15 @@ source "virtualbox-iso" "opensuse15" {
     http_content = {
         "/autoinst.xml" = templatefile("template/autoyast.xml", {
             user_password = "${var.root_password}",
-            tmpsize       = "1024"
+            tmpsize       = "1024m"
         })
     }
 
     # output configuration
-    output_directory = "A:/virtual-machines/opensuse"
+    output_directory = "A:/virtual-disks/opensuse"
 
     # run configuration
-    headless = false
+    headless = true
 
     # shutdown configuration
     shutdown_command = "/usr/bin/systemctl poweroff"
@@ -111,26 +111,42 @@ build {
 
     # load vbox modules at next startup
     provisioner "shell" {
-        inline = [
-            "set -x",
-            "echo 'allow_unsupported_modules 1' > /etc/modprobe.d/10-unsupported-modules.conf",
-            "printf '%s\n%s\n%s\n%s\n' vboxdrv vboxnetadp vboxnetflt vboxsf > /etc/modules-load.d/vbox-guest-additions.conf"
-        ]
-    }
-
-    # online update
-    provisioner "shell" {
         expect_disconnect = true
         inline = [
             "set -x",
-            "zypper --no-color --non-interactive update",
+            "echo 'allow_unsupported_modules 1' > /etc/modprobe.d/10-unsupported-modules.conf",
+            "printf '%s\n%s\n%s\n%s\n' vboxdrv vboxnetadp vboxnetflt vboxsf > /etc/modules-load.d/vbox-guest-additions.conf",
             "systemctl reboot"
         ]
     }
 
-    # install ssh public key and cleanup
+    # install pwsh prereq: .NET
     provisioner "shell" {
         pause_before = "1m"
+        inline = [
+            "set -x",
+            "zypper --no-color --non-interactive install --allow-unsigned-rpm https://packages.microsoft.com/opensuse/15/prod/packages-microsoft-prod.rpm",
+            "ln -s /etc/yum.repos.d/microsoft-prod.repo /etc/zypp/repos.d/microsoft-prod.repo",
+            "zypper --no-color --non-interactive modifyrepo --refresh packages-microsoft-com-prod",
+            "zypper --no-color --non-interactive --gpg-auto-import-keys install dotnet-sdk-6.0"
+        ]
+    }
+
+    # install pwsh / https://docs.microsoft.com/de-de/powershell/scripting/install/install-other-linux?view=powershell-7.2
+    provisioner "shell" {
+        inline = [
+            "set -x",
+            "dotnet tool install --global PowerShell"
+        ]
+    }
+            #"curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.2.1/powershell-7.2.1-linux-x64.tar.gz",
+            #"mkdir -p /opt/microsoft/powershell/7",
+            #"tar xzvf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7",
+            #"chmod +x /opt/microsoft/powershell/7/pwsh",
+            #"ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh"
+
+    # install ssh public key and cleanup
+    provisioner "shell" {
         inline = [
             "set -x",
             "install -v -m 0700 -d ~/.ssh",
