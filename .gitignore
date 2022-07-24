@@ -6,3 +6,6 @@
 
 # during development the RNG schema for autoyast is extracted here
 packer/opensuse/template/schema
+
+# ignore my own todo list :-)
+TODO

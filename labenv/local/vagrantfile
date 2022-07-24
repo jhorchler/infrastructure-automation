@@ -1,0 +1,69 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Specify minimum Vagrant version
+Vagrant.require_version ">= 2.2.0"
+
+# define defaults
+SHOW_GUI = true
+DNS_DOMAIN = "local.test"
+DEFAULT_NIC_TYPE = "virtio"
+BOX_MASTER = "debian/bullseye64"
+CPUS_MASTER = 2
+MEMORY_MASTER = 2048
+EXT_IP_MASTER = "172.16.16.20"
+EXT_IP_DEVICE = "Intel(R) Wi-Fi 6 AX200 160MHz"
+
+# create the boxes
+Vagrant.configure("2") do |config|
+
+    # default settings for VirtualBox
+    config.vm.provider :virtualbox do |vb|
+
+        # GUI handling
+        vb.gui = SHOW_GUI
+
+        # all base boxes should have virtio drivers installed
+        vb.default_nic_type = DEFAULT_NIC_TYPE
+
+        # no audio needed
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+
+        # disable recording
+        vb.customize ["modifyvm", :id, "--recording", "off"]
+
+        # disable remote display (needs Extension Pack)
+        vb.customize ["modifyvm", :id, "--vrde", "off"]
+
+    end # config.vm.provider :virtualbox
+
+    #### define machines ######################################################
+    config.vm.define :iacgw do |iacgw|
+
+        # which box to use / master will be debian 11
+        iacgw.vm.box = BOX_MASTER
+
+        # set hostname
+        iacgw.vm.hostname = "lxiacgw.#{DNS_DOMAIN}"
+
+        # this VM should use a bridged network
+        iacgw.vm.network "public_network", ip: EXT_IP_MASTER, bridge: EXT_IP_DEVICE
+
+        # configure VirtualBox
+        iacgw.vm.provider :virtualbox do |v|
+
+            # set name in interface
+            v.name = "lxiacgw"
+
+            # set resources
+            v.cpus = CPUS_MASTER
+            v.memory = MEMORY_MASTER
+
+            # set real time clock to UTC
+            v.customize ["modifyvm", :id, "--rtcuseutc", "on"]
+
+        end # iacgw.vm.provider :virtualbox
+
+    end # config.vm.define :iacgw
+
+end # config
